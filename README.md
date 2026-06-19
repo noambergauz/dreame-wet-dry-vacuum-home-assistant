@@ -103,12 +103,13 @@ For reference, here is the checklist HACS uses to validate a custom **integratio
 | `README.md` in repository root | ✅ | this file (`render_readme: true`) |
 | `LICENSE` in repository root | ✅ | The Unlicense (public domain) |
 | CI validation (HACS Action + hassfest) | ✅ | `.github/workflows/validate.yml` |
-| Repository is **public** on GitHub | ⬜ | confirm the repo visibility is set to *Public* |
-| GitHub repository **description** is set | ⬜ | set a short description in the repo's *About* section |
-| GitHub repository **topics** include `home-assistant` / `hacs` | ⬜ | add topics in the repo's *About* section |
-| At least one **release / tag** (recommended) | ⬜ | create a GitHub release, e.g. `v0.1.0`, matching `manifest.json` version |
+| Brand assets (`brand/icon.png`) | ✅ | local **placeholder** icon — see note below |
+| Repository is **public** on GitHub | ✅ | set to *Public* |
+| GitHub repository **description** is set | ✅ | set in the repo's *About* section |
+| GitHub repository **topics** | ✅ | `home-assistant`, `hacs`, `dreame`, `vacuum`, … |
+| At least one **release / tag** | ✅ | [`v0.1.0`](https://github.com/morcus/dreame-wet-dry-vacuum-home-assistant/releases/tag/v0.1.0) |
 
-> ⬜ items are GitHub-side settings that have to be configured in the repository — they can't be set from the code in this repo.
+> **Brand icon note:** `custom_components/dreame_wet_dry_vacuum/brand/icon.png` is a neutral, generated **placeholder** (a generic water-drop glyph) so the HACS *brands* check passes. It is **not** the Dreame logo. Replace it with a logo you have the rights to use, or — the recommended route — register the integration in the [home-assistant/brands](https://github.com/home-assistant/brands) repository, which both Home Assistant and HACS pick up automatically.
 
 ### Optional: getting into the default HACS store
 
