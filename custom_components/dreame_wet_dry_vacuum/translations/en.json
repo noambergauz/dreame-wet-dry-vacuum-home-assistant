@@ -1,0 +1,30 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dreame Wet & Dry Vacuum",
+        "description": "Connect your Dreame wet & dry vacuum (developed and tested with the H14 Pro) to Home Assistant using your Dreame Home app credentials.",
+        "data": {
+          "username": "Email",
+          "password": "Password",
+          "region": "Region"
+        }
+      },
+      "device": {
+        "title": "Select Device",
+        "description": "Multiple Dreame devices found. Select your wet & dry vacuum.",
+        "data": {
+          "device_id": "Device"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid email or password.",
+      "cannot_connect": "Cannot connect to Dreame cloud.",
+      "no_devices": "No devices found on this account."
+    },
+    "abort": {
+      "already_configured": "Device is already configured."
+    }
+  }
+}

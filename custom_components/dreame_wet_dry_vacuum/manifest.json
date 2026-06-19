@@ -1,0 +1,12 @@
+{
+  "domain": "dreame_wet_dry_vacuum",
+  "name": "Dreame Wet & Dry Vacuum",
+  "version": "0.1.0",
+  "codeowners": ["@morcus"],
+  "config_flow": true,
+  "documentation": "https://github.com/morcus/dreame-wet-dry-vacuum-home-assistant",
+  "issue_tracker": "https://github.com/morcus/dreame-wet-dry-vacuum-home-assistant/issues",
+  "iot_class": "cloud_push",
+  "requirements": ["pycryptodome>=3.19.0", "paho-mqtt>=1.6.1"],
+  "dependencies": []
+}

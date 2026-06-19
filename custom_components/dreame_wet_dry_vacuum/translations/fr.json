@@ -1,0 +1,30 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aspirateur laveur Dreame",
+        "description": "Connectez votre aspirateur laveur Dreame (développé et testé avec le H14 Pro) à Home Assistant avec vos identifiants de l'application Dreame Home.",
+        "data": {
+          "username": "Adresse e-mail",
+          "password": "Mot de passe",
+          "region": "Région"
+        }
+      },
+      "device": {
+        "title": "Sélectionner un appareil",
+        "description": "Plusieurs appareils Dreame trouvés. Sélectionnez votre aspirateur laveur.",
+        "data": {
+          "device_id": "Appareil"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Adresse e-mail ou mot de passe incorrect.",
+      "cannot_connect": "Impossible de se connecter au cloud Dreame.",
+      "no_devices": "Aucun appareil trouvé sur ce compte."
+    },
+    "abort": {
+      "already_configured": "Cet appareil est déjà configuré."
+    }
+  }
+}
