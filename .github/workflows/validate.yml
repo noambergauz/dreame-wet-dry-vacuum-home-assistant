@@ -15,6 +15,10 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
+          # The "brands" check requires the integration to be listed in the
+          # home-assistant/brands repository, which is only needed for inclusion
+          # in the HACS default store — not for custom-repository installs.
+          ignore: brands
 
   hassfest:
     name: hassfest
