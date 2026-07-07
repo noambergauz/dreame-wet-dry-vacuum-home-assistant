@@ -17,7 +17,6 @@ from .const import (
     DREAME_IOT_PREFIX,
     DREAME_PASSWORD_SALT,
     DREAME_RLC_KEY,
-    DREAME_RLC_PLAIN,
     DREAME_TENANT_ID,
     ENDPOINTS,
     EU_BASE_URL,
@@ -30,6 +29,8 @@ REGION_URLS = {
     "eu": EU_BASE_URL,
     "cn": CN_BASE_URL,
 }
+
+REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 
 def _md5_password(password: str) -> str:
@@ -80,15 +81,32 @@ class DreameAuthError(DreameAPIError):
 class DreameAPI:
     """Client for the Dreame Home cloud API."""
 
-    def __init__(self, username: str, password: str, region: str = "eu") -> None:
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        region: str = "eu",
+        session: aiohttp.ClientSession | None = None,
+    ) -> None:
         self._username = username
         self._password = password
         self._region = region
         self._base_url = REGION_URLS.get(region, EU_BASE_URL)
         self._access_token: str | None = None
         self._uid: str | None = None
-        self._session: aiohttp.ClientSession | None = None
+        self._session = session
+        self._owns_session = session is None
         self._rlc = _compute_rlc(region)
+
+    @property
+    def uid(self) -> str | None:
+        """Account uid, available after login()."""
+        return self._uid
+
+    @property
+    def access_token(self) -> str | None:
+        """Current access token, available after login()."""
+        return self._access_token
 
     def _get_base_headers(self) -> dict[str, str]:
         return {
@@ -96,7 +114,6 @@ class DreameAPI:
             "dreame-meta": "cv=i_829",
             "dreame-rlc": self._rlc,
             "tenant-id": DREAME_TENANT_ID,
-            "host": self._base_url.split("//")[1],
         }
 
     def _get_auth_headers(self) -> dict[str, str]:
@@ -108,10 +125,12 @@ class DreameAPI:
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
             self._session = aiohttp.ClientSession()
+            self._owns_session = True
         return self._session
 
     async def close(self) -> None:
-        if self._session and not self._session.closed:
+        # Only close a session we created ourselves, never a shared one.
+        if self._owns_session and self._session and not self._session.closed:
             await self._session.close()
 
     async def login(self) -> None:
@@ -135,14 +154,14 @@ class DreameAPI:
         }
 
         try:
-            async with session.post(url, headers=headers, data=data, ssl=False) as resp:
+            async with session.post(
+                url, headers=headers, data=data, timeout=REQUEST_TIMEOUT
+            ) as resp:
                 if resp.status != 200:
                     text = await resp.text()
-                    raise DreameAuthError(f"Login failed ({resp.status}): {text}")
+                    raise DreameAuthError(f"Login failed ({resp.status}): {text[:200]}")
                 result = await resp.json(content_type=None)
-        except DreameAuthError:
-            raise
-        except Exception as err:
+        except (aiohttp.ClientError, TimeoutError, ValueError) as err:
             raise DreameAPIError(f"Login request failed: {err}") from err
 
         if "access_token" not in result:
@@ -152,12 +171,37 @@ class DreameAPI:
         self._uid = result.get("uid")
         _LOGGER.debug("Dreame login successful, uid=%s", self._uid)
 
-    async def get_devices(self) -> list[dict[str, Any]]:
-        """Return list of devices bound to the account."""
+    async def _authed_post(self, url: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """POST with bearer auth; re-login and retry exactly once on 401.
+
+        Raises DreameAuthError if the re-login itself is rejected (bad
+        credentials), DreameAPIError for transport/protocol failures.
+        """
         await self._ensure_logged_in()
         session = await self._get_session()
-        url = self._base_url + ENDPOINTS["device_list"]
+        for attempt in (1, 2):
+            try:
+                async with session.post(
+                    url,
+                    headers=self._get_auth_headers(),
+                    json=payload,
+                    timeout=REQUEST_TIMEOUT,
+                ) as resp:
+                    if resp.status == 401 and attempt == 1:
+                        await self.login()
+                        continue
+                    if resp.status != 200:
+                        text = await resp.text()
+                        raise DreameAPIError(
+                            f"Request failed ({resp.status}): {text[:200]}"
+                        )
+                    return await resp.json(content_type=None)
+            except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+                raise DreameAPIError(f"Request failed: {err}") from err
+        raise DreameAPIError("Still unauthorized after re-login")
 
+    async def get_devices(self) -> list[dict[str, Any]]:
+        """Return list of devices bound to the account."""
         payload = {
             "sharedStatus": 1,
             "current": 1,
@@ -165,23 +209,15 @@ class DreameAPI:
             "lang": "en",
             "timestamp": int(time.time() * 1000),
         }
+        result = await self._authed_post(
+            self._base_url + ENDPOINTS["device_list"], payload
+        )
 
-        try:
-            async with session.post(
-                url, headers=self._get_auth_headers(), json=payload, ssl=False
-            ) as resp:
-                if resp.status == 401:
-                    await self.login()
-                    return await self.get_devices()
-                result = await resp.json(content_type=None)
-        except Exception as err:
-            raise DreameAPIError(f"get_devices failed: {err}") from err
-
-        data = result.get("data", {})
+        data = result.get("data") or {}
         # Dreame nests the list under data.page.records
-        records = data.get("page", {}).get("records", [])
+        records = (data.get("page") or {}).get("records") or []
         if not records:
-            records = data.get("records", [])
+            records = data.get("records") or []
         return records
 
     async def get_device_snapshot(self, device_id: str) -> dict[str, Any]:
@@ -216,22 +252,11 @@ class DreameAPI:
         with values parsed to native types (int / list), keys never reported are
         simply absent.
         """
-        await self._ensure_logged_in()
-        session = await self._get_session()
-        url = self._base_url + ENDPOINTS["status_props"]
         # The endpoint expects keys as a single comma-separated string.
         payload = {"did": device_id, "keys": ",".join(keys)}
-
-        try:
-            async with session.post(
-                url, headers=self._get_auth_headers(), json=payload, ssl=False
-            ) as resp:
-                if resp.status == 401:
-                    await self.login()
-                    return await self.get_status_props(device_id, keys)
-                result = await resp.json(content_type=None)
-        except Exception as err:
-            raise DreameAPIError(f"get_status_props failed: {err}") from err
+        result = await self._authed_post(
+            self._base_url + ENDPOINTS["status_props"], payload
+        )
 
         out: dict[str, Any] = {}
         for item in result.get("data") or []:
@@ -249,8 +274,6 @@ class DreameAPI:
         props: list of {siid, piid} dicts
         Returns list of {siid, piid, value, code} dicts.
         """
-        await self._ensure_logged_in()
-        session = await self._get_session()
         url = self._base_url + ENDPOINTS["send_command"].format(prefix=DREAME_IOT_PREFIX)
 
         req_id = _random_request_id()
@@ -271,25 +294,13 @@ class DreameAPI:
             },
         }
 
-        try:
-            async with session.post(
-                url, headers=self._get_auth_headers(), json=payload, ssl=False
-            ) as resp:
-                if resp.status == 401:
-                    await self.login()
-                    return await self.get_properties(device_id, props)
-                result = await resp.json(content_type=None)
-        except Exception as err:
-            raise DreameAPIError(f"get_properties failed: {err}") from err
-
+        result = await self._authed_post(url, payload)
         return result.get("data", {}).get("result", [])
 
     async def set_property(
         self, device_id: str, siid: int, piid: int, value: Any
     ) -> bool:
         """Set a single device property."""
-        await self._ensure_logged_in()
-        session = await self._get_session()
         url = self._base_url + ENDPOINTS["send_command"].format(prefix=DREAME_IOT_PREFIX)
 
         req_id = _random_request_id()
@@ -305,17 +316,7 @@ class DreameAPI:
             },
         }
 
-        try:
-            async with session.post(
-                url, headers=self._get_auth_headers(), json=payload, ssl=False
-            ) as resp:
-                if resp.status == 401:
-                    await self.login()
-                    return await self.set_property(device_id, siid, piid, value)
-                result = await resp.json(content_type=None)
-        except Exception as err:
-            raise DreameAPIError(f"set_property failed: {err}") from err
-
+        result = await self._authed_post(url, payload)
         results = result.get("data", {}).get("result", [])
         return all(r.get("code", -1) == 0 for r in results)
 
@@ -323,8 +324,6 @@ class DreameAPI:
         self, device_id: str, siid: int, aiid: int, params: list | None = None
     ) -> bool:
         """Call a device action."""
-        await self._ensure_logged_in()
-        session = await self._get_session()
         url = self._base_url + ENDPOINTS["send_command"].format(prefix=DREAME_IOT_PREFIX)
 
         req_id = _random_request_id()
@@ -345,17 +344,7 @@ class DreameAPI:
             },
         }
 
-        try:
-            async with session.post(
-                url, headers=self._get_auth_headers(), json=payload, ssl=False
-            ) as resp:
-                if resp.status == 401:
-                    await self.login()
-                    return await self.call_action(device_id, siid, aiid, params)
-                result = await resp.json(content_type=None)
-        except Exception as err:
-            raise DreameAPIError(f"call_action failed: {err}") from err
-
+        result = await self._authed_post(url, payload)
         return result.get("data", {}).get("code", -1) == 0
 
     async def discover_properties(
@@ -379,7 +368,7 @@ class DreameAPI:
                     if item.get("code", -1) == 0:
                         key = (item["siid"], item["piid"])
                         results[key] = item.get("value")
-            except Exception as err:
+            except DreameAPIError as err:
                 _LOGGER.warning("Discovery chunk failed: %s", err)
         return results
 

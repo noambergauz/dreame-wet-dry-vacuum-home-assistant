@@ -3,10 +3,30 @@ from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, MANUFACTURER, MODEL
 from .coordinator import DreameWetDryCoordinator
+
+
+def build_device_info(coordinator: DreameWetDryCoordinator) -> DeviceInfo:
+    """Device registry info shared by every entity of this device.
+
+    The device-list record has no top-level "name"; the display name lives in
+    deviceInfo.displayName (or customName).
+    """
+    snap = coordinator.device_info_raw
+    return DeviceInfo(
+        identifiers={(DOMAIN, coordinator.device_id)},
+        name=(snap.get("deviceInfo") or {}).get("displayName")
+        or snap.get("customName")
+        or snap.get("name")
+        or "Dreame Wet & Dry Vacuum",
+        manufacturer=MANUFACTURER,
+        model=snap.get("model", MODEL),
+        sw_version=snap.get("ver") or snap.get("firmware"),
+    )
 
 
 class DreameWetDryEntity(CoordinatorEntity[DreameWetDryCoordinator]):
@@ -21,19 +41,11 @@ class DreameWetDryEntity(CoordinatorEntity[DreameWetDryCoordinator]):
         self._data_key = f"{key[0]}.{key[1]}"
         self._meta = meta
         self._attr_unique_id = f"{coordinator.device_id}_{meta['key']}"
-        self._attr_name = meta.get("name")
+        # Display names come from translations/<lang>.json (entity section),
+        # keyed by the meta "key"; the "name" field in const.py is documentation.
+        self._attr_translation_key = meta["key"]
         self._attr_icon = meta.get("icon")
-
-        snap = coordinator.device_info_raw
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.device_id)},
-            "name": snap.get("name")
-            or snap.get("deviceInfo", {}).get("displayName")
-            or "Dreame Wet & Dry Vacuum",
-            "manufacturer": MANUFACTURER,
-            "model": snap.get("model", MODEL),
-            "sw_version": snap.get("ver") or snap.get("firmware"),
-        }
+        self._attr_device_info = build_device_info(coordinator)
 
     @property
     def _raw(self) -> Any:

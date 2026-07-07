@@ -13,22 +13,19 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import DreameWetDryConfigEntry
 from .const import (
-    ALERT_BITS,
     CONSUMABLE_SENSORS,
     DEVICE_STATUS,
-    DOMAIN,
     ERROR_DECODE,
     KNOWN_MQTT_PROPS,
-    MANUFACTURER,
-    MODEL,
     WARN_DECODE,
     decode_field_alerts,
 )
-
-_DECODE_TABLES = {"warn": WARN_DECODE, "error": ERROR_DECODE}
 from .coordinator import DreameWetDryCoordinator
+from .entity import build_device_info
 
 _LOGGER = logging.getLogger(__name__)
+
+_DECODE_TABLES = {"warn": WARN_DECODE, "error": ERROR_DECODE}
 
 _DEVICE_CLASSES = {
     "battery": SensorDeviceClass.BATTERY,
@@ -91,7 +88,7 @@ class DreameWetDrySensor(CoordinatorEntity[DreameWetDryCoordinator], SensorEntit
         self._decode = meta.get("decode")
 
         self._attr_unique_id = f"{coordinator.device_id}_{self._data_key}"
-        self._attr_name = meta.get("name") or f"Propriété {self._data_key}"
+        self._attr_translation_key = meta["key"]
         self._attr_icon = meta.get("icon")
         if dc := _DEVICE_CLASSES.get(meta.get("device_class")):
             self._attr_device_class = dc
@@ -104,14 +101,7 @@ class DreameWetDrySensor(CoordinatorEntity[DreameWetDryCoordinator], SensorEntit
         if meta.get("diagnostic") or not meta:
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
-        snap = coordinator.device_info_raw
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.device_id)},
-            "name": snap.get("name") or snap.get("deviceInfo", {}).get("displayName") or "Dreame Wet & Dry Vacuum",
-            "manufacturer": MANUFACTURER,
-            "model": snap.get("model", MODEL),
-            "sw_version": snap.get("ver") or snap.get("firmware"),
-        }
+        self._attr_device_info = build_device_info(coordinator)
 
     def _scalar(self, raw: Any) -> Any:
         if self._list_scalar and isinstance(raw, list):
@@ -154,8 +144,6 @@ class DreameWetDrySensor(CoordinatorEntity[DreameWetDryCoordinator], SensorEntit
                 attrs["active_bits"] = [1 << b for b in bits]
                 if self._decode and self._decode in _DECODE_TABLES:
                     attrs["alerts"] = decode_field_alerts(ival, _DECODE_TABLES[self._decode])
-                elif ALERT_BITS:
-                    attrs["alerts"] = [ALERT_BITS.get(1 << b, f"bit_{b} (?)") for b in bits]
             except (ValueError, TypeError):
                 pass
         return attrs
@@ -176,15 +164,9 @@ class DreameWetDryConsumableSensor(CoordinatorEntity[DreameWetDryCoordinator], S
         self._max_key = meta["max"]
         self._full_life_min = meta["full_life_min"]
         self._attr_unique_id = f"{coordinator.device_id}_consumable_{meta['key']}"
-        self._attr_name = f"{meta['name']} — heures restantes"
+        self._attr_translation_key = f"consumable_{meta['key']}"
         self._attr_icon = meta.get("icon")
-        snap = coordinator.device_info_raw
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.device_id)},
-            "name": snap.get("name") or "Dreame Wet & Dry Vacuum",
-            "manufacturer": MANUFACTURER,
-            "model": snap.get("model", MODEL),
-        }
+        self._attr_device_info = build_device_info(coordinator)
 
     def _left_minutes(self) -> int | None:
         try:

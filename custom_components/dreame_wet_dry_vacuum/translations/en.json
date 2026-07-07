@@ -16,6 +16,13 @@
         "data": {
           "device_id": "Device"
         }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "The Dreame password for {username} is no longer valid. Enter the new password.",
+        "data": {
+          "password": "Password"
+        }
       }
     },
     "error": {
@@ -24,7 +31,187 @@
       "no_devices": "No devices found on this account."
     },
     "abort": {
-      "already_configured": "Device is already configured."
+      "already_configured": "Device is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "back_brush_left": {
+        "name": "Back roller brush — minutes left"
+      },
+      "battery": {
+        "name": "Battery"
+      },
+      "clean_count_2": {
+        "name": "Clean counter (alt.)"
+      },
+      "consumable_back_brush": {
+        "name": "Back roller brush — hours left"
+      },
+      "consumable_filter": {
+        "name": "Filter — hours left"
+      },
+      "consumable_front_brush": {
+        "name": "Front roller brush — hours left"
+      },
+      "detergent_fav": {
+        "name": "Detergent preference"
+      },
+      "dustbag_left": {
+        "name": "Dust bag — minutes left"
+      },
+      "elec_water": {
+        "name": "Electrolysis / detergent"
+      },
+      "error": {
+        "name": "Error codes"
+      },
+      "filter_left": {
+        "name": "Filter — minutes left"
+      },
+      "front_brush_left": {
+        "name": "Front roller brush — minutes left"
+      },
+      "last_clean_duration": {
+        "name": "Last clean duration"
+      },
+      "last_clean_time": {
+        "name": "Last clean"
+      },
+      "last_mop_duration": {
+        "name": "Last mop duration"
+      },
+      "last_vacuum_duration": {
+        "name": "Last vacuum duration"
+      },
+      "level_drying": {
+        "name": "Drying level"
+      },
+      "level_washing": {
+        "name": "Washing level"
+      },
+      "start_time": {
+        "name": "Start time"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "suck_brush_left": {
+        "name": "Suction brush — minutes left"
+      },
+      "suck_filter_left": {
+        "name": "Suction filter — minutes left"
+      },
+      "suction_mode": {
+        "name": "Suction mode"
+      },
+      "total_clean_count": {
+        "name": "Total clean count"
+      },
+      "total_time": {
+        "name": "Total runtime"
+      },
+      "total_time_self_clean": {
+        "name": "Total self-clean time"
+      },
+      "total_time_self_dry": {
+        "name": "Total self-dry time"
+      },
+      "warn": {
+        "name": "Warnings"
+      },
+      "warn_push": {
+        "name": "Push notification (raw)"
+      },
+      "water_level": {
+        "name": "Water level"
+      },
+      "water_level_set": {
+        "name": "Water level (setting)"
+      },
+      "work_mode": {
+        "name": "Work mode"
+      }
+    },
+    "binary_sensor": {
+      "auto_detergent_17": {
+        "name": "Auto detergent (sensor)"
+      },
+      "charging": {
+        "name": "Charging"
+      },
+      "clean_water_empty": {
+        "name": "Clean water tank empty"
+      },
+      "detergent_empty": {
+        "name": "Detergent empty"
+      },
+      "dirty_tank_full": {
+        "name": "Dirty water tank full"
+      },
+      "dirty_tank_missing": {
+        "name": "Dirty water tank missing"
+      },
+      "dirty_tank_not_clean": {
+        "name": "Dirty water tank needs cleaning"
+      },
+      "needs_self_clean": {
+        "name": "Self-cleaning recommended (dirty brush/tube)"
+      },
+      "online": {
+        "name": "Online"
+      }
+    },
+    "switch": {
+      "auto_backwash": {
+        "name": "Auto rinse"
+      },
+      "auto_dry_switch": {
+        "name": "Auto drying"
+      },
+      "auto_mix_detergent": {
+        "name": "Auto detergent mixing"
+      },
+      "custom_switch": {
+        "name": "Custom mode"
+      },
+      "light_control": {
+        "name": "Light"
+      },
+      "time_dry_after_clean": {
+        "name": "Timed dry after cleaning"
+      }
+    },
+    "number": {
+      "brush_speed": {
+        "name": "Brush speed (custom)"
+      },
+      "clean_power": {
+        "name": "Suction power (custom)"
+      },
+      "clean_water": {
+        "name": "Water flow (custom)"
+      },
+      "time_dry_value": {
+        "name": "Timed-dry duration"
+      },
+      "volume": {
+        "name": "Voice volume"
+      }
+    },
+    "select": {
+      "power_wheel": {
+        "name": "Traction force"
+      }
+    },
+    "button": {
+      "start_self_clean": {
+        "name": "Start self-cleaning"
+      },
+      "start_self_dry": {
+        "name": "Start self-drying"
+      }
     }
   }
 }

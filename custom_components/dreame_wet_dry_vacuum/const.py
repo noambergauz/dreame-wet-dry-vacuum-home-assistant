@@ -8,12 +8,10 @@ MODEL = "H14 Pro"
 EU_BASE_URL = "https://eu.iot.dreame.tech:13267"
 CN_BASE_URL = "https://cn.iot.dreame.tech:13267"
 
-DREAME_CLIENT_ID = "dreame_appv1"
-DREAME_CLIENT_SECRET = "AP^dv@z@SQYVxN88"
+# DREAME_BASIC_AUTH = base64("dreame_appv1:AP^dv@z@SQYVxN88") — app client credentials
 DREAME_BASIC_AUTH = "Basic ZHJlYW1lX2FwcHYxOkFQXmR2QHpAU1FZVnhOODg="
 DREAME_TENANT_ID = "000000"
 DREAME_PASSWORD_SALT = "RAylYC%fmSKp7%Tq"
-DREAME_RLC_PLAIN = "eu|en|DE"
 DREAME_RLC_KEY = b"EETjszu*XI5znHsI"
 DREAME_IOT_PREFIX = "10000"
 
@@ -25,8 +23,6 @@ ENDPOINTS = {
     # model where the realtime get_properties RPC returns null. Verified live.
     "status_props": "/dreame-user-iot/iotstatus/props",
 }
-
-DEFAULT_SCAN_INTERVAL = 30  # seconds
 
 # Device status codes for the H14 Pro (model dreame.hold.w2306e).
 # Source: official Dreame keyDefine file, property 2.1 (French labels).
@@ -100,7 +96,9 @@ PROP_STATUS = (2, 1)  # device status (matches latestStatus)
 #   timestamp=True       -> value is a Unix epoch (seconds)
 #   diagnostic=True      -> entity category Diagnostic
 # Noms issus de la spec officielle du plugin app (index.android.bundle).
-# Le mapping SIID/PIID nommé par Dreame fait autorité ; voir dumps/DECODED_SPEC.md.
+# Le mapping SIID/PIID nommé par Dreame fait autorité ; voir debug/dumps/DECODED_SPEC.md.
+# NB : "name" est documentaire ; l'affichage passe par translation_key = "key"
+# (section "entity" de translations/en.json et fr.json).
 KNOWN_MQTT_PROPS: dict[tuple[int, int], dict] = {
     # --- Service principal (SIID 1) ---
     (2, 1): {"key": "status", "name": "État", "enum": True, "icon": "mdi:robot-vacuum-variant"},
@@ -226,9 +224,6 @@ ALERT_BINARY_SENSORS: list[dict] = [
      "bit_mask": 12, "device_class": "problem", "icon": "mdi:broom"},
 ]
 
-# (legacy) garde la possibilité d'un décodage de bits nommés ; non utilisé désormais.
-ALERT_BITS: dict[int, str] = {}
-
 # Binary properties: (siid, piid): meta.
 #   bit_mask=N  -> on when (value & N) != 0 (instead of value != 0)
 KNOWN_BINARY_PROPS: dict[tuple[int, int], dict] = {
@@ -259,9 +254,10 @@ KNOWN_NUMBER_PROPS: dict[tuple[int, int], dict] = {
     (1, 12): {"key": "time_dry_value", "name": "Durée de séchage programmé", "icon": "mdi:timer-sand", "min": 0, "max": 21600, "step": 600, "unit": "s", "optimistic": True},
     # Réglages du mode personnalisé (plages à confirmer ; valeurs entières observées 0-2)
     # 16.1/16.2 sont lisibles (web) ; 16.4 ne l'est pas → optimiste.
-    (16, 1): {"key": "clean_power", "name": "Puissance d'aspiration (perso)", "icon": "mdi:fan", "min": 0, "max": 3, "step": 1},
-    (16, 2): {"key": "clean_water", "name": "Débit d'eau (perso)", "icon": "mdi:water", "min": 0, "max": 3, "step": 1},
-    (16, 4): {"key": "brush_speed", "name": "Vitesse de brosse (perso)", "icon": "mdi:rotate-right", "min": 0, "max": 3, "step": 1, "optimistic": True},
+    # config=True : paramètres de réglage, pas des contrôles principaux.
+    (16, 1): {"key": "clean_power", "name": "Puissance d'aspiration (perso)", "icon": "mdi:fan", "min": 0, "max": 3, "step": 1, "config": True},
+    (16, 2): {"key": "clean_water", "name": "Débit d'eau (perso)", "icon": "mdi:water", "min": 0, "max": 3, "step": 1, "config": True},
+    (16, 4): {"key": "brush_speed", "name": "Vitesse de brosse (perso)", "icon": "mdi:rotate-right", "min": 0, "max": 3, "step": 1, "optimistic": True, "config": True},
 }
 
 # Listes déroulantes : {options: {int_value: label}}

@@ -11,13 +11,29 @@ import json
 import logging
 import random
 import ssl
-import threading
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 import paho.mqtt.client as mqtt
 
 _LOGGER = logging.getLogger(__name__)
+
+# The Dreame brokers present a certificate issued by Dreame's private CA, so
+# validation against the public store is impossible. We pin that CA (bundled
+# below, extracted from the live broker chain) and keep full certificate-chain
+# and hostname verification enabled.
+CA_CERT_FILE = Path(__file__).parent / "dreame_mqtt_ca.pem"
+
+
+def _make_ssl_context() -> ssl.SSLContext:
+    """SSL context pinned to Dreame's private CA, hostname check enabled."""
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # CERT_REQUIRED + check_hostname
+    ctx.load_verify_locations(cafile=str(CA_CERT_FILE))
+    # Dreame's CA certs lack the AuthorityKeyIdentifier extension, which the
+    # strict validation some Python builds enable by default rejects.
+    ctx.verify_flags &= ~ssl.VERIFY_X509_STRICT
+    return ctx
 
 
 class DreameMqttClient:
@@ -43,7 +59,6 @@ class DreameMqttClient:
         self._region = region
         self._on_update = on_update
         self._client: mqtt.Client | None = None
-        self._thread: threading.Thread | None = None
         self.state: dict[tuple[int, int], Any] = {}
         self.connected = False
 
@@ -52,15 +67,24 @@ class DreameMqttClient:
         return f"/status/{self._did}/{self._uid}/{self._model}/{self._region}/"
 
     def update_token(self, access_token: str) -> None:
-        """Refresh the token used as MQTT password (call before reconnecting)."""
+        """Refresh the token used as MQTT password for future reconnects."""
+        if access_token == self._token:
+            return
         self._token = access_token
+        if self._client:
+            self._client.username_pw_set(self._uid, access_token)
 
     def start(self) -> None:
+        """Connect in the background.
+
+        Does blocking I/O (SSL context, CA file) — call from an executor.
+        """
         cid = "p_" + "".join(random.choices("0123456789abcdef", k=16))
-        client = mqtt.Client(client_id=cid, protocol=mqtt.MQTTv311)
+        client = mqtt.Client(
+            mqtt.CallbackAPIVersion.VERSION2, client_id=cid, protocol=mqtt.MQTTv311
+        )
         client.username_pw_set(self._uid, self._token)
-        client.tls_set(cert_reqs=ssl.CERT_NONE)
-        client.tls_insecure_set(True)
+        client.tls_set_context(_make_ssl_context())
         client.reconnect_delay_set(min_delay=5, max_delay=120)
         client.on_connect = self._on_connect
         client.on_message = self._on_message
@@ -79,17 +103,19 @@ class DreameMqttClient:
                 pass
             self._client = None
 
-    def _on_connect(self, client, userdata, flags, rc) -> None:
-        if rc == 0:
-            self.connected = True
-            client.subscribe(self.topic)
-            _LOGGER.info("Dreame MQTT connected, subscribed %s", self.topic)
-        else:
-            _LOGGER.warning("Dreame MQTT connect failed rc=%s", rc)
+    def _on_connect(self, client, userdata, flags, reason_code, properties) -> None:
+        if reason_code.is_failure:
+            _LOGGER.warning("Dreame MQTT connect failed: %s", reason_code)
+            return
+        self.connected = True
+        client.subscribe(self.topic)
+        _LOGGER.info("Dreame MQTT connected, subscribed %s", self.topic)
 
-    def _on_disconnect(self, client, userdata, rc) -> None:
+    def _on_disconnect(
+        self, client, userdata, disconnect_flags, reason_code, properties
+    ) -> None:
         self.connected = False
-        _LOGGER.debug("Dreame MQTT disconnected rc=%s", rc)
+        _LOGGER.debug("Dreame MQTT disconnected: %s", reason_code)
 
     def _on_message(self, client, userdata, msg) -> None:
         try:

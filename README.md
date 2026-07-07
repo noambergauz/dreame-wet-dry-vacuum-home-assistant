@@ -44,6 +44,8 @@ This is a *wet & dry stick* vacuum (not a robot), so there is **no `vacuum` enti
 
 > Some controls are *optimistic*: the device does not report their current value back, so the entity reflects the last command you sent.
 
+Entity names are translated (English and French) and follow your Home Assistant UI language.
+
 ---
 
 ## Requirements
@@ -84,7 +86,7 @@ Once this repository is published to the [HACS default store](https://hacs.xyz/d
 3. Enter your **Dreame account email**, **password**, and **region** (`Europe` or `China / Asia`).
 4. If your account has more than one device, pick the vacuum you want to add.
 
-The integration creates one device with all of its entities. State is updated in real time via MQTT, with a web poll every 30 seconds as a fallback.
+The integration creates one device with all of its entities. State is updated in real time via MQTT, with a web poll every 5 minutes as a safety net.
 
 ---
 
@@ -147,6 +149,20 @@ jobs:
       - uses: actions/checkout@v4
       - uses: home-assistant/actions/hassfest@master
 ```
+
+---
+
+## Development
+
+Unit tests (no Home Assistant install required) and linting:
+
+```bash
+pip install pytest ruff aiohttp pycryptodome "paho-mqtt>=2.0"
+pytest
+ruff check custom_components tests
+```
+
+Both run in CI on every push, alongside the HACS and hassfest validations.
 
 ---
 

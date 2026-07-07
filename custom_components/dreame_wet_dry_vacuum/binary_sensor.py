@@ -11,14 +11,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import DreameWetDryConfigEntry
-from .const import (
-    ALERT_BINARY_SENSORS,
-    DOMAIN,
-    KNOWN_BINARY_PROPS,
-    MANUFACTURER,
-    MODEL,
-)
+from .const import ALERT_BINARY_SENSORS, KNOWN_BINARY_PROPS
 from .coordinator import DreameWetDryCoordinator
+from .entity import build_device_info
 
 _BINARY_DEVICE_CLASSES = {
     "running": BinarySensorDeviceClass.RUNNING,
@@ -54,19 +49,13 @@ class DreameWetDryPropBinary(CoordinatorEntity[DreameWetDryCoordinator], BinaryS
         self._data_key = f"{key[0]}.{key[1]}"
         self._bit_mask = meta.get("bit_mask")
         self._attr_unique_id = f"{coordinator.device_id}_{meta['key']}"
-        self._attr_name = meta["name"]
+        self._attr_translation_key = meta["key"]
         self._attr_icon = meta.get("icon")
         if dc := _BINARY_DEVICE_CLASSES.get(meta.get("device_class")):
             self._attr_device_class = dc
         if meta.get("diagnostic"):
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        snap = coordinator.device_info_raw
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.device_id)},
-            "name": snap.get("name") or "Dreame Wet & Dry Vacuum",
-            "manufacturer": MANUFACTURER,
-            "model": snap.get("model", MODEL),
-        }
+        self._attr_device_info = build_device_info(coordinator)
 
     @property
     def is_on(self) -> bool | None:
@@ -97,17 +86,11 @@ class DreameWetDryAlertBinary(CoordinatorEntity[DreameWetDryCoordinator], Binary
         self._data_key = meta["data_key"]
         self._bit_mask = meta["bit_mask"]
         self._attr_unique_id = f"{coordinator.device_id}_{meta['key']}"
-        self._attr_name = meta["name"]
+        self._attr_translation_key = meta["key"]
         self._attr_icon = meta.get("icon")
         if dc := _BINARY_DEVICE_CLASSES.get(meta.get("device_class")):
             self._attr_device_class = dc
-        snap = coordinator.device_info_raw
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.device_id)},
-            "name": snap.get("name") or "Dreame Wet & Dry Vacuum",
-            "manufacturer": MANUFACTURER,
-            "model": snap.get("model", MODEL),
-        }
+        self._attr_device_info = build_device_info(coordinator)
 
     @property
     def is_on(self) -> bool | None:
@@ -127,17 +110,11 @@ class _BaseBinary(CoordinatorEntity[DreameWetDryCoordinator], BinarySensorEntity
         super().__init__(coordinator)
         self._key = key
         self._attr_unique_id = f"{coordinator.device_id}_{key}"
-        snapshot = coordinator.device_info_raw
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.device_id)},
-            "name": snapshot.get("name") or "Dreame Wet & Dry Vacuum",
-            "manufacturer": MANUFACTURER,
-            "model": snapshot.get("model", MODEL),
-        }
+        self._attr_device_info = build_device_info(coordinator)
 
 
 class DreameWetDryOnlineSensor(_BaseBinary):
-    _attr_name = "En ligne"
+    _attr_translation_key = "online"
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
 
     def __init__(self, coordinator: DreameWetDryCoordinator) -> None:
@@ -145,14 +122,18 @@ class DreameWetDryOnlineSensor(_BaseBinary):
 
     @property
     def is_on(self) -> bool:
-        # MQTT connectivity is the best real-time online signal
-        if coordinator_mqtt := getattr(self.coordinator, "mqtt", None):
-            return bool(coordinator_mqtt.connected)
-        return bool(self.coordinator.device_info_raw.get("online"))
+        # Cloud-reported device state, refreshed by the 5-min snapshot poll
+        snap = self.coordinator.snapshot or self.coordinator.device_info_raw
+        online = snap.get("online")
+        if online is not None:
+            return bool(online)
+        # Fallback: at least tell whether the real-time feed is up
+        mqtt = self.coordinator.mqtt
+        return bool(mqtt and mqtt.connected)
 
 
 class DreameWetDryChargingSensor(_BaseBinary):
-    _attr_name = "En charge"
+    _attr_translation_key = "charging"
     _attr_device_class = BinarySensorDeviceClass.BATTERY_CHARGING
     _attr_icon = "mdi:battery-charging"
 

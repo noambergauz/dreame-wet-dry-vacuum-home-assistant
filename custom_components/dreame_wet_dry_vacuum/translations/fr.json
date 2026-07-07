@@ -16,6 +16,13 @@
         "data": {
           "device_id": "Appareil"
         }
+      },
+      "reauth_confirm": {
+        "title": "Ré-authentification",
+        "description": "Le mot de passe Dreame pour {username} n'est plus valide. Saisissez le nouveau mot de passe.",
+        "data": {
+          "password": "Mot de passe"
+        }
       }
     },
     "error": {
@@ -24,7 +31,187 @@
       "no_devices": "Aucun appareil trouvé sur ce compte."
     },
     "abort": {
-      "already_configured": "Cet appareil est déjà configuré."
+      "already_configured": "Cet appareil est déjà configuré.",
+      "reauth_successful": "La ré-authentification a réussi."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "back_brush_left": {
+        "name": "Brosse rouleau arrière — minutes restantes"
+      },
+      "battery": {
+        "name": "Batterie"
+      },
+      "clean_count_2": {
+        "name": "Compteur de nettoyages (alt.)"
+      },
+      "consumable_back_brush": {
+        "name": "Brosse rouleau arrière — heures restantes"
+      },
+      "consumable_filter": {
+        "name": "Filtre — heures restantes"
+      },
+      "consumable_front_brush": {
+        "name": "Brosse rouleau avant — heures restantes"
+      },
+      "detergent_fav": {
+        "name": "Préférence détergent"
+      },
+      "dustbag_left": {
+        "name": "Sac à poussière — minutes restantes"
+      },
+      "elec_water": {
+        "name": "Électrolyse / détergent"
+      },
+      "error": {
+        "name": "Codes défaut"
+      },
+      "filter_left": {
+        "name": "Filtre — minutes restantes"
+      },
+      "front_brush_left": {
+        "name": "Brosse rouleau avant — minutes restantes"
+      },
+      "last_clean_duration": {
+        "name": "Durée du dernier nettoyage"
+      },
+      "last_clean_time": {
+        "name": "Dernier nettoyage"
+      },
+      "last_mop_duration": {
+        "name": "Durée lavage (dernier)"
+      },
+      "last_vacuum_duration": {
+        "name": "Durée aspiration (dernier)"
+      },
+      "level_drying": {
+        "name": "Niveau de séchage"
+      },
+      "level_washing": {
+        "name": "Niveau de lavage"
+      },
+      "start_time": {
+        "name": "Heure de début"
+      },
+      "status": {
+        "name": "État"
+      },
+      "suck_brush_left": {
+        "name": "Brosse d'aspiration — minutes restantes"
+      },
+      "suck_filter_left": {
+        "name": "Filtre d'aspiration — minutes restantes"
+      },
+      "suction_mode": {
+        "name": "Mode d'aspiration"
+      },
+      "total_clean_count": {
+        "name": "Nombre total de nettoyages"
+      },
+      "total_time": {
+        "name": "Temps de fonctionnement total"
+      },
+      "total_time_self_clean": {
+        "name": "Temps d'autonettoyage total"
+      },
+      "total_time_self_dry": {
+        "name": "Temps de séchage total"
+      },
+      "warn": {
+        "name": "Avertissements"
+      },
+      "warn_push": {
+        "name": "Notification push (brut)"
+      },
+      "water_level": {
+        "name": "Niveau d'eau"
+      },
+      "water_level_set": {
+        "name": "Niveau d'eau (réglage)"
+      },
+      "work_mode": {
+        "name": "Mode de travail"
+      }
+    },
+    "binary_sensor": {
+      "auto_detergent_17": {
+        "name": "Ajout auto détergent (capteur)"
+      },
+      "charging": {
+        "name": "En charge"
+      },
+      "clean_water_empty": {
+        "name": "Réservoir d'eau propre vide"
+      },
+      "detergent_empty": {
+        "name": "Détergent vide"
+      },
+      "dirty_tank_full": {
+        "name": "Bac d'eau sale à vider"
+      },
+      "dirty_tank_missing": {
+        "name": "Bac d'eau sale absent"
+      },
+      "dirty_tank_not_clean": {
+        "name": "Bac d'eau sale à nettoyer"
+      },
+      "needs_self_clean": {
+        "name": "Autonettoyage recommandé (brosse/tube sales)"
+      },
+      "online": {
+        "name": "En ligne"
+      }
+    },
+    "switch": {
+      "auto_backwash": {
+        "name": "Rinçage automatique"
+      },
+      "auto_dry_switch": {
+        "name": "Séchage automatique"
+      },
+      "auto_mix_detergent": {
+        "name": "Ajout auto de détergent"
+      },
+      "custom_switch": {
+        "name": "Mode personnalisé"
+      },
+      "light_control": {
+        "name": "Lumière"
+      },
+      "time_dry_after_clean": {
+        "name": "Séchage programmé après nettoyage"
+      }
+    },
+    "number": {
+      "brush_speed": {
+        "name": "Vitesse de brosse (perso)"
+      },
+      "clean_power": {
+        "name": "Puissance d'aspiration (perso)"
+      },
+      "clean_water": {
+        "name": "Débit d'eau (perso)"
+      },
+      "time_dry_value": {
+        "name": "Durée de séchage programmé"
+      },
+      "volume": {
+        "name": "Volume vocal"
+      }
+    },
+    "select": {
+      "power_wheel": {
+        "name": "Force de traction"
+      }
+    },
+    "button": {
+      "start_self_clean": {
+        "name": "Démarrer l'autonettoyage"
+      },
+      "start_self_dry": {
+        "name": "Démarrer le séchage"
+      }
     }
   }
 }

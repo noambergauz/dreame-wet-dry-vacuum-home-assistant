@@ -35,8 +35,7 @@ class DreameWetDryNumber(DreameWetDryEntity, NumberEntity):
         self._attr_native_step = meta.get("step", 1)
         if meta.get("unit"):
             self._attr_native_unit_of_measurement = meta["unit"]
-        # Custom-mode tuning params are configuration, not main controls
-        if key[0] == 16:
+        if meta.get("config"):
             self._attr_entity_category = EntityCategory.CONFIG
 
     @property
