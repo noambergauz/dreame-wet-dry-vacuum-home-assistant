@@ -65,7 +65,7 @@ Python dependencies (`pycryptodome`, `paho-mqtt`) are installed automatically by
 1. Make sure [HACS](https://hacs.xyz/) is installed.
 2. In Home Assistant go to **HACS → Integrations → ⋮ (top-right) → Custom repositories**.
 3. Add this repository:
-   - **Repository:** `https://github.com/morcus/dreame-wet-dry-vacuum-home-assistant`
+    - **Repository:** `https://github.com/noambergauz/dreame-wet-dry-vacuum-home-assistant`
    - **Category:** `Integration`
 4. Find **Dreame Wet & Dry Vacuum** in the HACS list and click **Download**.
 5. **Restart Home Assistant.**
@@ -100,7 +100,7 @@ For reference, here is the checklist HACS uses to validate a custom **integratio
 | `manifest.json` with `domain`, `name`, `version` | ✅ | required for custom integrations |
 | `manifest.json` `documentation` URL | ✅ | points to this repository |
 | `manifest.json` `issue_tracker` URL | ✅ | points to the GitHub issues page |
-| `manifest.json` `codeowners` | ✅ | `["@morcus"]` |
+| `manifest.json` `codeowners` | ✅ | `["@noambergauz"]` |
 | `hacs.json` in repository root | ✅ | `name`, `content_in_root: false`, `render_readme`, `homeassistant` |
 | `README.md` in repository root | ✅ | this file (`render_readme: true`) |
 | `LICENSE` in repository root | ✅ | The Unlicense (public domain) |
@@ -109,7 +109,7 @@ For reference, here is the checklist HACS uses to validate a custom **integratio
 | Repository is **public** on GitHub | ✅ | set to *Public* |
 | GitHub repository **description** is set | ✅ | set in the repo's *About* section |
 | GitHub repository **topics** | ✅ | `home-assistant`, `hacs`, `dreame`, `vacuum`, … |
-| At least one **release / tag** | ✅ | [`v0.1.0`](https://github.com/morcus/dreame-wet-dry-vacuum-home-assistant/releases/tag/v0.1.0) |
+| At least one **release / tag** | ✅ | [`v0.1.0`](https://github.com/noambergauz/dreame-wet-dry-vacuum-home-assistant/releases/tag/v0.1.0) |
 
 > **Brand icon note:** `custom_components/dreame_wet_dry_vacuum/brand/icon.png` is a neutral, generated **placeholder** (a generic water-drop glyph) so the HACS *brands* check passes. It is **not** the Dreame logo. Replace it with a logo you have the rights to use, or — the recommended route — register the integration in the [home-assistant/brands](https://github.com/home-assistant/brands) repository, which both Home Assistant and HACS pick up automatically.
 
