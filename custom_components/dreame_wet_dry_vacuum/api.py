@@ -21,6 +21,10 @@ from .const import (
     ENDPOINTS,
     EU_BASE_URL,
     CN_BASE_URL,
+    US_BASE_URL,
+    SG_BASE_URL,
+    RU_BASE_URL,
+    KR_BASE_URL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,6 +32,10 @@ _LOGGER = logging.getLogger(__name__)
 REGION_URLS = {
     "eu": EU_BASE_URL,
     "cn": CN_BASE_URL,
+    "us": US_BASE_URL,
+    "sg": SG_BASE_URL,
+    "ru": RU_BASE_URL,
+    "kr": KR_BASE_URL,
 }
 
 REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=30)
@@ -102,6 +110,11 @@ class DreameAPI:
     def uid(self) -> str | None:
         """Account uid, available after login()."""
         return self._uid
+
+    @property
+    def region(self) -> str:
+        """Configured region key (eu/cn/us/sg/ru/kr)."""
+        return self._region
 
     @property
     def access_token(self) -> str | None:

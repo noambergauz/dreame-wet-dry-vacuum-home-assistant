@@ -52,7 +52,7 @@ Entity names are translated (English and French) and follow your Home Assistant 
 
 - Home Assistant **2025.1.0** or newer
 - A **Dreame** account (the same one you use in the Dreamehome app) with your vacuum already added
-- Network access from Home Assistant to the Dreame cloud (`eu`/`cn` regions supported)
+- Network access from Home Assistant to the Dreame cloud (`eu`/`cn`/`us`/`sg`/`ru`/`kr` regions supported)
 
 Python dependencies (`pycryptodome`, `paho-mqtt`) are installed automatically by Home Assistant from the integration's `manifest.json`.
 
@@ -83,7 +83,7 @@ Once this repository is published to the [HACS default store](https://hacs.xyz/d
 
 1. Go to **Settings → Devices & Services → Add Integration**.
 2. Search for **Dreame Wet & Dry Vacuum**.
-3. Enter your **Dreame account email**, **password**, and **region** (`Europe` or `China / Asia`).
+3. Enter your **Dreame account email**, **password**, and **region**. There is no dedicated Israel shard — if your account was created in Israel, pick **Singapore / Asia-Pacific** first (Middle-East accounts are usually routed there), then try United States / Europe if the device list comes back empty.
 4. If your account has more than one device, pick the vacuum you want to add.
 
 The integration creates one device with all of its entities. State is updated in real time via MQTT, with a web poll every 5 minutes as a safety net.
@@ -176,7 +176,7 @@ The integration version lives in `custom_components/dreame_wet_dry_vacuum/manife
 
 - **`invalid_auth`** — wrong email/password, or wrong region. Make sure you can sign in to the Dreamehome app with the same credentials.
 - **`cannot_connect`** — Home Assistant cannot reach the Dreame cloud; check connectivity and the selected region.
-- **`no_devices`** — the account has no compatible device. Confirm the vacuum is added to that Dreame account.
+- **`no_devices`** — the account has no compatible device **on the selected region**. Login can succeed on the wrong shard and still list nothing: re-add the integration and try another region (`sg` first for Israel / Middle East, then `us` / `eu`). Confirm the vacuum is added to that Dreame account.
 - Enable debug logging to investigate:
 
   ```yaml

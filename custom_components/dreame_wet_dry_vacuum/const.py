@@ -4,9 +4,17 @@ DOMAIN = "dreame_wet_dry_vacuum"
 MANUFACTURER = "Dreame"
 MODEL = "H14 Pro"
 
-# API
+# API — one shard per region: https://{region}.iot.dreame.tech:13267
+# Verified resolvable 2026-09: eu, cn, us, sg, ru, kr.
+# There is NO dedicated il/me shard (DNS NXDOMAIN); Israeli accounts live on
+# one of the shards below — usually sg (Singapore serves TR/Middle-East, cf.
+# Tasshack/dreame-vacuum) — so try sg first, then us/eu.
 EU_BASE_URL = "https://eu.iot.dreame.tech:13267"
 CN_BASE_URL = "https://cn.iot.dreame.tech:13267"
+US_BASE_URL = "https://us.iot.dreame.tech:13267"
+SG_BASE_URL = "https://sg.iot.dreame.tech:13267"
+RU_BASE_URL = "https://ru.iot.dreame.tech:13267"
+KR_BASE_URL = "https://kr.iot.dreame.tech:13267"
 
 # DREAME_BASIC_AUTH = base64("dreame_appv1:AP^dv@z@SQYVxN88") — app client credentials
 DREAME_BASIC_AUTH = "Basic ZHJlYW1lX2FwcHYxOkFQXmR2QHpAU1FZVnhOODg="
@@ -288,4 +296,8 @@ CONF_DEVICE_ID = "device_id"
 REGIONS = {
     "eu": "Europe",
     "cn": "China / Asia",
+    "us": "United States",
+    "sg": "Singapore / Asia-Pacific (use for Israel / Middle East)",
+    "ru": "Russia",
+    "kr": "South Korea",
 }

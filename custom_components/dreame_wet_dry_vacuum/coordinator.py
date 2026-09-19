@@ -118,6 +118,7 @@ class DreameWetDryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             model=snap.get("model", ""),
             bind_domain=bind,
             on_update=self._handle_mqtt_update,
+            region=self.api.region,
         )
         self.mqtt.start()
 
