@@ -171,6 +171,21 @@ class TestAuthedRequests:
         props = run(api.get_status_props("did", ["2.1", "4.5", "1.53", "9.9"]))
         assert props == {"2.1": 7, "4.5": [81], "1.53": None}
 
+    def test_null_data_envelope_does_not_crash(self):
+        # The cloud can reply {"code": 0, "data": null} (seen live on this
+        # model for get_properties). .get("data", {}) returns None there,
+        # so every chained .get must be null-safe.
+
+        def handler(url, kwargs):
+            if "oauth/token" in url:
+                return FakeResponse(200, TOKEN_OK)
+            return FakeResponse(200, {"code": 0, "data": None})
+
+        api = DreameAPI("u", "p", session=FakeSession(handler))
+        assert run(api.get_properties("did", [{"siid": 23, "piid": 1}])) == []
+        assert run(api.set_property("did", 23, 1, 1)) is True
+        assert run(api.call_action("did", 1, 1)) is False
+
     def test_get_device_snapshot_matches_did_as_string(self):
         record = {
             "did": -12345678,

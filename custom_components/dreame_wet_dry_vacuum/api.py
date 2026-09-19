@@ -308,7 +308,9 @@ class DreameAPI:
         }
 
         result = await self._authed_post(url, payload)
-        return result.get("data", {}).get("result", [])
+        # NB: "data" can be explicit null — .get("data", {}) would return None.
+        data = result.get("data") or {}
+        return data.get("result") or []
 
     async def set_property(
         self, device_id: str, siid: int, piid: int, value: Any
@@ -330,8 +332,15 @@ class DreameAPI:
         }
 
         result = await self._authed_post(url, payload)
-        results = result.get("data", {}).get("result", [])
-        return all(r.get("code", -1) == 0 for r in results)
+        # NB: "data" can be explicit null — .get("data", {}) would return None.
+        data = result.get("data") or {}
+        results = data.get("result") or []
+        ok = all(r.get("code", -1) == 0 for r in results)
+        if not ok:
+            _LOGGER.warning(
+                "set_property %s.%s=%s rejected: %s", siid, piid, value, result
+            )
+        return ok
 
     async def call_action(
         self, device_id: str, siid: int, aiid: int, params: list | None = None
@@ -358,7 +367,9 @@ class DreameAPI:
         }
 
         result = await self._authed_post(url, payload)
-        return result.get("data", {}).get("code", -1) == 0
+        # NB: "data" can be explicit null — .get("data", {}) would return None.
+        data = result.get("data") or {}
+        return data.get("code", -1) == 0
 
     async def discover_properties(
         self, device_id: str, siid_range: range = range(1, 11), piid_range: range = range(1, 21)
