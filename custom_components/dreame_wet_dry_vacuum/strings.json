@@ -202,7 +202,12 @@
     },
     "select": {
       "power_wheel": {
-        "name": "Traction force"
+        "name": "Traction force",
+        "state": {
+          "light": "Light",
+          "balanced": "Balanced",
+          "strong": "Strong"
+        }
       }
     },
     "button": {
